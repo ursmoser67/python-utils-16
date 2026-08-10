@@ -1,0 +1,15 @@
+MAX_RETRIES = 3
+TIMEOUT = 30
+API_ENDPOINT = 'https://api.example.com'
+DEFAULT_ENCODING = 'utf-8'
+RETRY_DELAY = 5
+LOG_LEVEL = 'INFO'
+SUPPORT_EMAIL = 'support@example.com'
+SUPPORTED_FILE_TYPES = ['jpg', 'png', 'gif', 'pdf']
+DEFAULT_PAGE_SIZE = 50
+BASE_DIR = '/usr/local/app'
+API_VERSION = 'v1'
+CACHE_EXPIRATION = 600
+ENABLE_FEATURE_X = True
+DISABLE_ANIMATION = False
+USER_ROLES = ['admin', 'editor', 'viewer']
