@@ -1,15 +1,22 @@
-import logging
-from logging.handlers import RotatingFileHandler
+import json
+import os
 
-def setup_logger(log_file='app.log', max_size=5*1024*1024, backup_count=5):
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
+class ConfigLoader:
+    def __init__(self, default_config_path, user_config_path):
+        self.default_config_path = default_config_path
+        self.user_config_path = user_config_path
+        self.config = self.load_config()
 
-    handler = RotatingFileHandler(log_file, maxBytes=max_size, backupCount=backup_count)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
+    def load_config(self):
+        default_config = self.load_json(self.default_config_path)
+        user_config = self.load_json(self.user_config_path)
+        return {**default_config, **user_config}
 
-    logger.addHandler(handler)
-    return logger
+    def load_json(self, path):
+        if not os.path.exists(path):
+            return {}
+        with open(path, 'r') as file:
+            return json.load(file)
 
-logger = setup_logger()
+    def get(self, key, default=None):
+        return self.config.get(key, default)
