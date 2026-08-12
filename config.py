@@ -1,33 +1,35 @@
 import json
-from pathlib import Path
+import os
 
 class ConfigLoader:
     def __init__(self, default_config=None):
         self.default_config = default_config or {}
-        self.config = self.default_config.copy()
+        self.user_config = {}
 
-    def load(self, path):
-        try:
-            with open(path, 'r') as file:
-                user_config = json.load(file)
-                self.config.update(user_config)
-        except FileNotFoundError:
-            pass
-        except json.JSONDecodeError:
-            raise ValueError(f"Invalid JSON in config file: {path}")
+    def load(self, filepath):
+        if os.path.exists(filepath):
+            with open(filepath, 'r') as file:
+                self.user_config = json.load(file)
+        else:
+            self.user_config = {}
 
     def get(self, key, default=None):
-        return self.config.get(key, default)
+        return self.user_config.get(key, self.default_config.get(key, default))
 
-    def all(self):
-        return self.config
+    def __getitem__(self, key):
+        return self.get(key)
 
-# Example of providing default configuration
-default_config = {
-    'host': 'localhost',
-    'port': 8080,
-    'debug': False
-}
+    def __setitem__(self, key, value):
+        self.user_config[key] = value
 
-loader = ConfigLoader(default_config)
-loader.load('config.json')
+    def to_dict(self):
+        config = self.default_config.copy()
+        config.update(self.user_config)
+        return config
+
+# Example usage
+if __name__ == '__main__':
+    defaults = {'host': 'localhost', 'port': 8080}
+    config_loader = ConfigLoader(defaults)
+    config_loader.load('config.json')
+    print(config_loader.to_dict())
