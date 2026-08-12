@@ -1,15 +1,21 @@
-MAX_RETRIES = 3
+API_BASE_URL = "https://api.example.com/v1"
 TIMEOUT = 30
-API_ENDPOINT = 'https://api.example.com'
-DEFAULT_ENCODING = 'utf-8'
-RETRY_DELAY = 5
-LOG_LEVEL = 'INFO'
-SUPPORT_EMAIL = 'support@example.com'
-SUPPORTED_FILE_TYPES = ['jpg', 'png', 'gif', 'pdf']
-DEFAULT_PAGE_SIZE = 50
-BASE_DIR = '/usr/local/app'
-API_VERSION = 'v1'
-CACHE_EXPIRATION = 600
-ENABLE_FEATURE_X = True
-DISABLE_ANIMATION = False
-USER_ROLES = ['admin', 'editor', 'viewer']
+MAX_RETRIES = 5
+DEFAULT_LANGUAGE = "en"
+SUPPORTED_FORMATS = ["json", "xml"]
+SUCCESS_CODE = 200
+NOT_FOUND_CODE = 404
+SERVER_ERROR_CODE = 500
+ERROR_MESSAGES = {
+    400: "Bad Request",
+    401: "Unauthorized",
+    403: "Forbidden",
+    404: "Not Found",
+    500: "Internal Server Error"
+}
+
+def is_valid_format(format_name):
+    return format_name in SUPPORTED_FORMATS
+
+def get_error_message(code):
+    return ERROR_MESSAGES.get(code, "Unknown Error")
