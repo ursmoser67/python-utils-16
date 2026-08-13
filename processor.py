@@ -1,31 +1,22 @@
 import json
+from validators import validate_input
 
-class InputValidationError(Exception):
-    pass
+def process_data(data):
+    if not validate_input(data):
+        raise ValueError('Invalid input data')
+    # processing logic here
+    result = data['value'] * 2
+    return result
 
-class DataProcessor:
-    def __init__(self, data):
-        self.data = data
-
-    def validate_input(self):
-        if not isinstance(self.data, dict):
-            raise InputValidationError('Input must be a dictionary.')
-        if 'name' not in self.data or not isinstance(self.data['name'], str):
-            raise InputValidationError('Missing or invalid name.')
-        if 'age' not in self.data or not isinstance(self.data['age'], int):
-            raise InputValidationError('Missing or invalid age.')
-        return True
-
-    def process_data(self):
+def main_loop():
+    while True:
         try:
-            self.validate_input()
-            # Simulating data processing
-            return json.dumps({'status': 'success', 'data': self.data})
-        except InputValidationError as e:
-            return json.dumps({'status': 'error', 'message': str(e)})
+            user_input = input('Enter data (JSON): ')
+            data = json.loads(user_input)
+            result = process_data(data)
+            print(f'Result: {result}')
+        except (ValueError, json.JSONDecodeError) as e:
+            print(f'Error: {e}')
 
 if __name__ == '__main__':
-    sample_data = {'name': 'Alice', 'age': 30}
-    processor = DataProcessor(sample_data)
-    result = processor.process_data()
-    print(result)
+    main_loop()
