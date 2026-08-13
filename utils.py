@@ -4,14 +4,14 @@ import requests
 class NetworkError(Exception):
     pass
 
-def retry_request(url, retries=3, backoff=2):
+def retry_request(url, retries=3, delay=2):
     for attempt in range(retries):
         try:
             response = requests.get(url)
             response.raise_for_status()
             return response.json()
-        except requests.RequestException:
+        except (requests.HTTPError, requests.ConnectionError) as e:
             if attempt < retries - 1:
-                time.sleep(backoff ** attempt)
+                time.sleep(delay)
             else:
-                raise NetworkError(f"Failed to fetch {url} after {retries} attempts")
+                raise NetworkError(f'Network request failed after {retries} attempts: {e}')
