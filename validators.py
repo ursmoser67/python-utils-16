@@ -1,22 +1,16 @@
-def validate_email(email):
-    if not isinstance(email, str):
-        raise ValueError("Email must be a string")
-    if '@' not in email or '.' not in email:
-        raise ValueError("Invalid email format")
-    return True
+import re
 
+def validate_email(email: str) -> bool:
+    pattern = r'^[\w\.]+@[\w\.]+\.\w+$'
+    return bool(re.match(pattern, email))
 
-def validate_age(age):
-    if not isinstance(age, int):
-        raise ValueError("Age must be an integer")
-    if age < 0:
-        raise ValueError("Age cannot be negative")
-    return True
+def validate_phone(phone: str) -> bool:
+    pattern = r'^\+?1?\d{9,15}$'
+    return bool(re.match(pattern, phone))
 
+def validate_username(username: str) -> bool:
+    pattern = r'^[a-zA-Z0-9_.-]+$
+    return bool(re.match(pattern, username))
 
-def validate_positive_number(number):
-    if not isinstance(number, (int, float)):
-        raise ValueError("Number must be an integer or float")
-    if number <= 0:
-        raise ValueError("Number must be positive")
-    return True
+def validate_password(password: str) -> bool:
+    return len(password) >= 8 and any(char.isdigit() for char in password)
