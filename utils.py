@@ -1,22 +1,35 @@
+import os
 import json
+from datetime import datetime
 
-def validate_input(data):
-    if not isinstance(data, dict):
-        raise ValueError('Input must be a dictionary')
-    if 'name' not in data or not isinstance(data['name'], str):
-        raise ValueError('Name is required and must be a string')
-    if 'age' not in data or not isinstance(data['age'], int) or data['age'] <= 0:
-        raise ValueError('Age is required and must be a positive integer')
+def read_json(file_path):
+    with open(file_path, 'r') as f:
+        return json.load(f)
 
-def process_data(data):
-    validate_input(data)
-    # Simulating some processing
-    return json.dumps({'status': 'success', 'data': data})
 
-if __name__ == '__main__':
-    sample_input = {'name': 'Alice', 'age': 30}
-    try:
-        result = process_data(sample_input)
-        print(result)
-    except ValueError as e:
-        print(f'Input error: {e}')
+def write_json(file_path, data):
+    with open(file_path, 'w') as f:
+        json.dump(data, f, indent=4)
+
+
+def format_timestamp(timestamp):
+    return timestamp.strftime('%Y-%m-%d %H:%M:%S')
+
+
+def log_message(message, level='INFO'):
+    formatted_time = format_timestamp(datetime.now())
+    print(f'[{formatted_time}] {level}: {message}')  
+
+
+def file_exists(file_path):
+    return os.path.isfile(file_path)
+
+
+def create_directory(dir_path):
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+
+
+def read_lines(file_path):
+    with open(file_path, 'r') as f:
+        return f.readlines()
