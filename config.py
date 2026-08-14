@@ -1,29 +1,13 @@
-import json
+import os
 
-class ConfigLoader:
-    def __init__(self, default_config):
-        self.default_config = default_config
-        self.config = default_config.copy()
+class Config:
+    def __init__(self):
+        self.env = self.get_env_variable('ENV', 'development')
+        self.debug = self.get_env_variable('DEBUG', 'False') == 'True'
+        self.database_url = self.get_env_variable('DATABASE_URL')
 
-    def load(self, filepath):
-        try:
-            with open(filepath, 'r') as file:
-                user_config = json.load(file)
-            self.config.update(user_config)
-        except FileNotFoundError:
-            pass
-        except json.JSONDecodeError:
-            raise ValueError('Invalid JSON format')
+    @staticmethod
+    def get_env_variable(var_name, default=None):
+        return os.environ.get(var_name, default)
 
-    def get(self, key, default=None):
-        return self.config.get(key, default)
-
-    def all(self):
-        return self.config
-
-# Example usage
-if __name__ == '__main__':
-    default_settings = {'key1': 'value1', 'key2': 'value2'}
-    loader = ConfigLoader(default_settings)
-    loader.load('user_config.json')
-    print(loader.all())
+config = Config()
