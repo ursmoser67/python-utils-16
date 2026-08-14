@@ -1,35 +1,27 @@
-import os
 import json
-from datetime import datetime
+import os
 
-def read_json(file_path):
-    with open(file_path, 'r') as f:
-        return json.load(f)
-
-
-def write_json(file_path, data):
-    with open(file_path, 'w') as f:
-        json.dump(data, f, indent=4)
+def load_json(file_path):
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"{file_path} not found")
+    with open(file_path, 'r') as file:
+        return json.load(file)
 
 
-def format_timestamp(timestamp):
-    return timestamp.strftime('%Y-%m-%d %H:%M:%S')
+def save_json(data, file_path):
+    with open(file_path, 'w') as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
 
 
-def log_message(message, level='INFO'):
-    formatted_time = format_timestamp(datetime.now())
-    print(f'[{formatted_time}] {level}: {message}')  
+def update_json(file_path, updates):
+    data = load_json(file_path)
+    data.update(updates)
+    save_json(data, file_path)
 
 
-def file_exists(file_path):
-    return os.path.isfile(file_path)
+def is_json_file(file_path):
+    return file_path.endswith('.json')
 
 
-def create_directory(dir_path):
-    if not os.path.exists(dir_path):
-        os.makedirs(dir_path)
-
-
-def read_lines(file_path):
-    with open(file_path, 'r') as f:
-        return f.readlines()
+def pretty_print_json(data):
+    print(json.dumps(data, indent=4, ensure_ascii=False))
