@@ -1,22 +1,14 @@
-import json
-import os
+from typing import Final
 
-DEFAULT_CONFIG = {
-    'app_name': 'MyApp',
-    'version': '1.0.0',
-    'debug': False,
-    'database': {
-        'host': 'localhost',
-        'port': 5432,
-        'user': 'user',
-        'password': 'pass',
-        'dbname': 'app_db'
-    }
+# Constants for application use
+
+API_URL: Final[str] = "https://api.example.com"
+TIMEOUT: Final[int] = 30
+RETRY_LIMIT: Final[int] = 5
+MAX_CONNECTIONS: Final[int] = 100
+
+STATUS_CODES: Final[dict[int, str]] = {
+    200: "OK",
+    404: "Not Found",
+    500: "Internal Server Error"
 }
-
-def load_config(file_path):
-    if not os.path.exists(file_path):
-        return DEFAULT_CONFIG
-    with open(file_path, 'r') as config_file:
-        config = json.load(config_file)
-    return {**DEFAULT_CONFIG, **config}
