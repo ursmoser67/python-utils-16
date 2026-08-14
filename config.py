@@ -1,35 +1,29 @@
 import json
-import os
 
 class ConfigLoader:
     def __init__(self, default_config):
         self.default_config = default_config
         self.config = default_config.copy()
 
-    def load_from_file(self, filepath):
-        if os.path.isfile(filepath):
+    def load(self, filepath):
+        try:
             with open(filepath, 'r') as file:
-                file_config = json.load(file)
-                self.config.update(file_config)
+                user_config = json.load(file)
+            self.config.update(user_config)
+        except FileNotFoundError:
+            pass
+        except json.JSONDecodeError:
+            raise ValueError('Invalid JSON format')
 
     def get(self, key, default=None):
         return self.config.get(key, default)
 
-# Default configuration
-default_config = {
-    'host': 'localhost',
-    'port': 8080,
-    'debug': False,
-    'database': {
-        'user': 'user',
-        'password': 'pass',
-        'name': 'db'
-    }
-}
+    def all(self):
+        return self.config
 
-# Usage example
+# Example usage
 if __name__ == '__main__':
-    loader = ConfigLoader(default_config)
-    loader.load_from_file('config.json')
-    print(loader.get('host'))
-    print(loader.get('database')['user'])
+    default_settings = {'key1': 'value1', 'key2': 'value2'}
+    loader = ConfigLoader(default_settings)
+    loader.load('user_config.json')
+    print(loader.all())
