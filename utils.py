@@ -1,26 +1,16 @@
-import json
+import time
+import requests
+from requests.exceptions import RequestException
 
-
-def process_data(data):
-    if not isinstance(data, list):
-        raise ValueError('Input must be a list.')
-    return [d * 2 for d in data if isinstance(d, (int, float))]
-
-
-def validate_input(data):
-    if not isinstance(data, list):
-        return False
-    return all(isinstance(d, (int, float)) for d in data)
-
-
-def main():
-    input_data = json.loads(input('Enter a list of numbers: '))
-    if validate_input(input_data):
-        result = process_data(input_data)
-        print('Processed result:', result)
-    else:
-        print('Invalid input. Please provide a list of numbers.')
-
-
-if __name__ == '__main__':
-    main()
+def retry_request(url, max_retries=3, backoff_factor=1):
+    attempts = 0
+    while attempts < max_retries:
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            return response
+        except RequestException as e:
+            attempts += 1
+            if attempts == max_retries:
+                raise e
+            time.sleep(backoff_factor * (2 ** (attempts - 1)))
