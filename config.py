@@ -1,13 +1,19 @@
+import json
 import os
 
-class Config:
-    def __init__(self):
-        self.env = self.get_env_variable('ENV', 'development')
-        self.debug = self.get_env_variable('DEBUG', 'False') == 'True'
-        self.database_url = self.get_env_variable('DATABASE_URL')
+class ConfigLoader:
+    def __init__(self, default_config=None):
+        self.default_config = default_config if default_config else {}
 
-    @staticmethod
-    def get_env_variable(var_name, default=None):
-        return os.environ.get(var_name, default)
+    def load(self, filepath):
+        if not os.path.isfile(filepath):
+            return self.default_config
+        with open(filepath, 'r') as config_file:
+            return {**self.default_config, **json.load(config_file)}
 
-config = Config()
+# Example usage:
+if __name__ == '__main__':
+    default_settings = {'host': 'localhost', 'port': 8080}
+    config_loader = ConfigLoader(default_settings)
+    config = config_loader.load('config.json')
+    print(config)
