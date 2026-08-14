@@ -1,16 +1,22 @@
-import time
-import requests
-from requests.exceptions import RequestException
+import json
 
-def retry_request(url, max_retries=3, backoff_factor=1):
-    attempts = 0
-    while attempts < max_retries:
-        try:
-            response = requests.get(url)
-            response.raise_for_status()
-            return response
-        except RequestException as e:
-            attempts += 1
-            if attempts == max_retries:
-                raise e
-            time.sleep(backoff_factor * (2 ** (attempts - 1)))
+def read_json(file_path):
+    with open(file_path, 'r') as file:
+        return json.load(file)
+
+
+def write_json(file_path, data):
+    with open(file_path, 'w') as file:
+        json.dump(data, file, indent=4)
+
+
+def flatten_list(nested_list):
+    return [item for sublist in nested_list for item in sublist]
+
+
+def deduplicate_list(lst):
+    return list(set(lst))
+
+
+def chunk_list(lst, chunk_size):
+    return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
