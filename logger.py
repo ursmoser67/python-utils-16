@@ -1,28 +1,33 @@
 import logging
 
-class Logger:
-    def __init__(self, name):
+class CustomLogger:
+    def __init__(self, name, level=logging.INFO):
         self.logger = logging.getLogger(name)
-        self.logger.setLevel(logging.DEBUG)
+        self.logger.setLevel(level)
         handler = logging.StreamHandler()
-        handler.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        handler.setFormatter(formatter)
+        handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
         self.logger.addHandler(handler)
 
-    def debug(self, message):
-        self.logger.debug(message)
+    def log_info(self, message):
+        try:
+            self.logger.info(message)
+        except Exception as e:
+            self.logger.error(f'Failed to log info: {e}')  
 
-    def info(self, message):
-        self.logger.info(message)
+    def log_warning(self, message):
+        try:
+            self.logger.warning(message)
+        except Exception as e:
+            self.logger.error(f'Failed to log warning: {e}') 
 
-    def warning(self, message):
-        self.logger.warning(message)
+    def log_error(self, message):
+        try:
+            self.logger.error(message)
+        except Exception as e:
+            self.logger.error(f'Failed to log error: {e}') 
 
-    def error(self, message):
-        self.logger.error(message)
-
-    def critical(self, message):
-        self.logger.critical(message)
-
-logger = Logger(__name__)
+    def log_exception(self, message):
+        try:
+            self.logger.exception(message)
+        except Exception as e:
+            self.logger.error(f'Failed to log exception: {e}')
