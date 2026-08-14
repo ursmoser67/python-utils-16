@@ -1,21 +1,26 @@
 import json
-from typing import Any, Dict
-
-def read_json(file_path: str) -> Dict[str, Any]:
-    with open(file_path, 'r') as file:
-        return json.load(file)
 
 
-def write_json(file_path: str, data: Dict[str, Any]) -> None:
-    with open(file_path, 'w') as file:
-        json.dump(data, file, indent=4)
+def process_data(data):
+    if not isinstance(data, list):
+        raise ValueError('Input must be a list.')
+    return [d * 2 for d in data if isinstance(d, (int, float))]
 
 
-def merge_dicts(dict1: Dict[str, Any], dict2: Dict[str, Any]) -> Dict[str, Any]:
-    merged = dict1.copy()
-    merged.update(dict2)
-    return merged
+def validate_input(data):
+    if not isinstance(data, list):
+        return False
+    return all(isinstance(d, (int, float)) for d in data)
 
 
-def filter_dict(data: Dict[str, Any], keys: list) -> Dict[str, Any]:
-    return {key: data[key] for key in keys if key in data}
+def main():
+    input_data = json.loads(input('Enter a list of numbers: '))
+    if validate_input(input_data):
+        result = process_data(input_data)
+        print('Processed result:', result)
+    else:
+        print('Invalid input. Please provide a list of numbers.')
+
+
+if __name__ == '__main__':
+    main()
