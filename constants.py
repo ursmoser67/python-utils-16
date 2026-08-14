@@ -1,14 +1,25 @@
-from typing import Final
+class Constants:
+    MAX_RETRIES = 5
+    TIMEOUT = 30
+    API_URL = 'https://api.example.com'
 
-# Constants for application use
+    @staticmethod
+    def get_database_config():
+        return {
+            'host': 'localhost',
+            'port': 5432,
+            'user': 'admin',
+            'password': 'admin'
+        }
 
-API_URL: Final[str] = "https://api.example.com"
-TIMEOUT: Final[int] = 30
-RETRY_LIMIT: Final[int] = 5
-MAX_CONNECTIONS: Final[int] = 100
+    @staticmethod
+    def get_log_level():
+        return 'DEBUG'
 
-STATUS_CODES: Final[dict[int, str]] = {
-    200: "OK",
-    404: "Not Found",
-    500: "Internal Server Error"
-}
+    @staticmethod
+    def get_api_key():
+        return 'your_api_key_here'
+
+    @staticmethod
+    def get_support_email():
+        return 'support@example.com'
