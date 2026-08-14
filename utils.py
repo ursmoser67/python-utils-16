@@ -1,27 +1,43 @@
-import json
-import os
-
-def load_json(file_path):
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"{file_path} not found")
-    with open(file_path, 'r') as file:
-        return json.load(file)
+def fibonacci(n):
+    a, b = 0, 1
+    for _ in range(n):
+        yield a
+        a, b = b, a + b
 
 
-def save_json(data, file_path):
-    with open(file_path, 'w') as file:
-        json.dump(data, file, ensure_ascii=False, indent=4)
+def factorial(n):
+    if n < 0:
+        raise ValueError("Negative values are not allowed")
+    result = 1
+    for i in range(2, n + 1):
+        result *= i
+    return result
 
 
-def update_json(file_path, updates):
-    data = load_json(file_path)
-    data.update(updates)
-    save_json(data, file_path)
+def is_prime(num):
+    if num <= 1:
+        return False
+    for i in range(2, int(num**0.5) + 1):
+        if num % i == 0:
+            return False
+    return True
 
 
-def is_json_file(file_path):
-    return file_path.endswith('.json')
+def gcd(a, b):
+    while b:
+        a, b = b, a % b
+    return a
 
 
-def pretty_print_json(data):
-    print(json.dumps(data, indent=4, ensure_ascii=False))
+def lcm(a, b):
+    return abs(a * b) // gcd(a, b)
+
+
+def is_palindrome(s):
+    return s == s[::-1]
+
+
+def merge_dicts(dict1, dict2):
+    merged = dict1.copy()
+    merged.update(dict2)
+    return merged
