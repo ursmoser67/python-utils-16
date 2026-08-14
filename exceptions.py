@@ -1,22 +1,17 @@
-class CustomError(Exception):
+class DataError(Exception):
     pass
 
-class NotFoundError(CustomError):
-    def __init__(self, message="Not Found Error occurred."):
+class NotFoundError(DataError):
+    def __init__(self, message="Data not found."):
         super().__init__(message)
 
-class ValidationError(CustomError):
-    def __init__(self, message="Validation Error occurred."):
-        super().__init__(message)
+class ValidationError(DataError):
+    def __init__(self, field, message="Invalid value."):
+        self.field = field
+        self.message = message
+        super().__init__(f'{field}: {message}')
 
-class PermissionDeniedError(CustomError):
-    def __init__(self, message="Permission Denied Error occurred."):
-        super().__init__(message)
-
-class ConfigurationError(CustomError):
-    def __init__(self, message="Configuration Error occurred."):
-        super().__init__(message)
-
-class DatabaseError(CustomError):
-    def __init__(self, message="Database Error occurred."):
-        super().__init__(message)
+class DuplicateEntryError(DataError):
+    def __init__(self, entry):
+        self.entry = entry
+        super().__init__(f'Duplicate entry found: {entry}')
