@@ -1,43 +1,39 @@
-def fibonacci(n):
-    a, b = 0, 1
-    for _ in range(n):
-        yield a
-        a, b = b, a + b
+import json
+
+class CustomError(Exception):
+    pass
+
+def safe_json_loads(data):
+    try:
+        return json.loads(data)
+    except json.JSONDecodeError:
+        raise CustomError('Invalid JSON format')
+    except TypeError:
+        raise CustomError('Data must be a string or bytes')
 
 
-def factorial(n):
-    if n < 0:
-        raise ValueError("Negative values are not allowed")
-    result = 1
-    for i in range(2, n + 1):
-        result *= i
-    return result
+def divide_numbers(numerator, denominator):
+    if denominator == 0:
+        raise CustomError('Division by zero is undefined')
+    return numerator / denominator
 
 
-def is_prime(num):
-    if num <= 1:
-        return False
-    for i in range(2, int(num**0.5) + 1):
-        if num % i == 0:
-            return False
-    return True
+def fetch_data_from_api(url):
+    if not isinstance(url, str):
+        raise CustomError('URL must be a string')
+    if not url.startswith('http'):
+        raise CustomError('Invalid URL format')
+    # Simulated fetch operation
+    return {'data': 'sample data'}
 
 
-def gcd(a, b):
-    while b:
-        a, b = b, a % b
-    return a
+def main():
+    try:
+        data = safe_json_loads('{"key": "value"}')
+        result = divide_numbers(10, 0)
+        api_response = fetch_data_from_api('http://api.example.com')
+    except CustomError as e:
+        print(f'Error: {e}')
 
-
-def lcm(a, b):
-    return abs(a * b) // gcd(a, b)
-
-
-def is_palindrome(s):
-    return s == s[::-1]
-
-
-def merge_dicts(dict1, dict2):
-    merged = dict1.copy()
-    merged.update(dict2)
-    return merged
+if __name__ == '__main__':
+    main()
