@@ -1,32 +1,43 @@
-import json
+from typing import List, Union
 
-class InputValidationError(Exception):
-    pass
+def calculate_average(values: List[Union[int, float]]) -> float:
+    """
+    Calculate the average of numbers in a list.
+    
+    Args:
+        values: A list of integers or floats.
+    
+    Returns:
+        The average as a float.
+    """
+    if not values:
+        return 0.0
+    return sum(values) / len(values)
 
-def process_data(data):
-    if not isinstance(data, dict):
-        raise InputValidationError('Data must be a dictionary')
-    if 'name' not in data or not isinstance(data['name'], str):
-        raise InputValidationError('Name is required and must be a string')
-    if 'age' not in data or not isinstance(data['age'], int):
-        raise InputValidationError('Age is required and must be an integer')
-    return {'status': 'success', 'data': data}
+def find_max(values: List[Union[int, float]]) -> Union[int, float]:
+    """
+    Find the maximum number in a list.
+    
+    Args:
+        values: A list of integers or floats.
+    
+    Returns:
+        The maximum value in the list.
+    """
+    if not values:
+        raise ValueError("The list must not be empty.")
+    return max(values)
 
-def main_loop(inputs):
-    results = []
-    for item in inputs:
-        try:
-            result = process_data(item)
-            results.append(result)
-        except InputValidationError as e:
-            results.append({'status': 'error', 'message': str(e)})
-    return json.dumps(results)
-
-if __name__ == '__main__':
-    sample_inputs = [
-        {'name': 'Alice', 'age': 30},
-        {'name': 123, 'age': 'thirty'},
-        {'name': 'Bob', 'age': 25}
-    ]
-    output = main_loop(sample_inputs)
-    print(output)
+def find_min(values: List[Union[int, float]]) -> Union[int, float]:
+    """
+    Find the minimum number in a list.
+    
+    Args:
+        values: A list of integers or floats.
+    
+    Returns:
+        The minimum value in the list.
+    """
+    if not values:
+        raise ValueError("The list must not be empty.")
+    return min(values)
