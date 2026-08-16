@@ -1,26 +1,31 @@
-import json
+import time
 
-class DataProcessor:
-    def __init__(self, data):
-        self.data = data
+class PerformanceOptimizer:
+    def __init__(self):
+        self.execution_times = []
 
-    def process_data(self):
-        return [self._transform(item) for item in self.data]
+    def measure_time(self, func):
+        def wrapper(*args, **kwargs):
+            start_time = time.time()
+            result = func(*args, **kwargs)
+            end_time = time.time()
+            self.execution_times.append(end_time - start_time)
+            return result
+        return wrapper
 
-    def _transform(self, item):
-        return item.upper()  # Example transformation
+    def get_average_time(self):
+        if not self.execution_times:
+            return 0
+        return sum(self.execution_times) / len(self.execution_times)
 
-class DataHandler:
-    def __init__(self, processor):
-        self.processor = processor
-
-    def handle(self):
-        processed = self.processor.process_data()
-        return json.dumps(processed)
+# Example usage
+@PerformanceOptimizer().measure_time
+def sample_function(x):
+    time.sleep(x)
+    return x
 
 if __name__ == '__main__':
-    data = ['foo', 'bar', 'baz']
-    processor = DataProcessor(data)
-    handler = DataHandler(processor)
-    result = handler.handle()
-    print(result)
+    for i in range(1, 4):
+        sample_function(i)
+    optimizer = PerformanceOptimizer()
+    print(f'Average execution time: {optimizer.get_average_time()} seconds')
