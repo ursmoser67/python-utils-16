@@ -1,29 +1,26 @@
-import time
+import json
 
-class PerformanceTimer:
-    def __init__(self):
-        self.start_time = None
+class DataProcessor:
+    def __init__(self, data):
+        self.data = data
 
-    def start(self):
-        self.start_time = time.perf_counter()
+    def process_data(self):
+        return [self._transform(item) for item in self.data]
 
-    def stop(self):
-        if self.start_time is None:
-            raise RuntimeError("Timer has not been started.")
-        elapsed = time.perf_counter() - self.start_time
-        self.start_time = None
-        return elapsed
+    def _transform(self, item):
+        return item.upper()  # Example transformation
 
-def optimized_function(data):
-    timer = PerformanceTimer()
-    timer.start()
-    result = []
-    for item in data:
-        processed = process_item(item)
-        result.append(processed)
-    elapsed_time = timer.stop()
-    print(f"Function executed in {elapsed_time:.4f} seconds.")
-    return result
+class DataHandler:
+    def __init__(self, processor):
+        self.processor = processor
 
-def process_item(item):
-    return item * 2  # Example processing step
+    def handle(self):
+        processed = self.processor.process_data()
+        return json.dumps(processed)
+
+if __name__ == '__main__':
+    data = ['foo', 'bar', 'baz']
+    processor = DataProcessor(data)
+    handler = DataHandler(processor)
+    result = handler.handle()
+    print(result)
