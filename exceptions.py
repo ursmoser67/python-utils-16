@@ -1,17 +1,19 @@
-class DataError(Exception):
-    pass
+class CustomError(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+        self.message = message
 
-class NotFoundError(DataError):
-    def __init__(self, message="Data not found."):
+class NotFoundError(CustomError):
+    def __init__(self, resource):
+        message = f'{resource} not found'
         super().__init__(message)
 
-class ValidationError(DataError):
-    def __init__(self, field, message="Invalid value."):
-        self.field = field
-        self.message = message
-        super().__init__(f'{field}: {message}')
+class ValidationError(CustomError):
+    def __init__(self, field, issue):
+        message = f'Validation error on {field}: {issue}'
+        super().__init__(message)
 
-class DuplicateEntryError(DataError):
-    def __init__(self, entry):
-        self.entry = entry
-        super().__init__(f'Duplicate entry found: {entry}')
+class OperationFailedError(CustomError):
+    def __init__(self, operation):
+        message = f'Operation failed: {operation}'
+        super().__init__(message)
