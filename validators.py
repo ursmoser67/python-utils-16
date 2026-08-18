@@ -1,16 +1,27 @@
-import re
+import requests
+import time
+from functools import wraps
 
-def validate_email(email: str) -> bool:
-    pattern = r'^[\w\.]+@[\w\.]+\.\w+$'
-    return bool(re.match(pattern, email))
 
-def validate_phone(phone: str) -> bool:
-    pattern = r'^\+?1?\d{9,15}$'
-    return bool(re.match(pattern, phone))
+def retry(times=3, delay=1, backoff=2):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            for attempt in range(times):
+                try:
+                    return func(*args, **kwargs)
+                except requests.RequestException as e:
+                    if attempt < times - 1:
+                        time.sleep(delay)
+                        delay *= backoff
+                    else:
+                        raise e
+        return wrapper
+    return decorator
 
-def validate_username(username: str) -> bool:
-    pattern = r'^[a-zA-Z0-9_.-]+$
-    return bool(re.match(pattern, username))
 
-def validate_password(password: str) -> bool:
-    return len(password) >= 8 and any(char.isdigit() for char in password)
+@retry(times=5, delay=2)
+def fetch_data(url):
+    response = requests.get(url)
+    response.raise_for_status()
+    return response.json()
