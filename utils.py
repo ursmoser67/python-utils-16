@@ -1,37 +1,24 @@
-def safe_divide(numerator, denominator):
-    try:
-        result = numerator / denominator
-    except ZeroDivisionError:
-        return 'Error: Division by zero'
-    except TypeError:
-        return 'Error: Invalid input types'
+import json
+
+def read_json(file_path):
+    with open(file_path, 'r') as f:
+        return json.load(f)
+
+
+def write_json(file_path, data):
+    with open(file_path, 'w') as f:
+        json.dump(data, f, indent=4)
+
+
+def merge_dicts(dict1, dict2):
+    result = dict1.copy()
+    result.update(dict2)
     return result
 
 
-def read_file(file_path):
-    try:
-        with open(file_path, 'r') as file:
-            return file.read()
-    except FileNotFoundError:
-        return 'Error: File not found'
-    except IOError:
-        return 'Error: I/O error occurred'
+def flatten_list(nested_list):
+    return [item for sublist in nested_list for item in sublist]
 
 
-def parse_int(value):
-    try:
-        return int(value)
-    except ValueError:
-        return 'Error: Invalid integer string'
-
-
-def process_data(data):
-    if not isinstance(data, list):
-        return 'Error: Data should be a list'
-    processed = []
-    for item in data:
-        if isinstance(item, int):
-            processed.append(item ** 2)
-        else:
-            return 'Error: All items must be integers'
-    return processed
+def get_unique_elements(lst):
+    return list(set(lst))
