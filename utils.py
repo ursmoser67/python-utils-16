@@ -1,15 +1,37 @@
-import time
-import requests
-from requests.exceptions import RequestException
+def safe_divide(numerator, denominator):
+    try:
+        result = numerator / denominator
+    except ZeroDivisionError:
+        return 'Error: Division by zero'
+    except TypeError:
+        return 'Error: Invalid input types'
+    return result
 
-def retry_request(url, retries=3, backoff_factor=0.3):
-    for attempt in range(retries):
-        try:
-            response = requests.get(url)
-            response.raise_for_status()
-            return response
-        except RequestException as e:
-            if attempt < retries - 1:
-                time.sleep(backoff_factor * (2 ** attempt))
-            else:
-                raise e
+
+def read_file(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            return file.read()
+    except FileNotFoundError:
+        return 'Error: File not found'
+    except IOError:
+        return 'Error: I/O error occurred'
+
+
+def parse_int(value):
+    try:
+        return int(value)
+    except ValueError:
+        return 'Error: Invalid integer string'
+
+
+def process_data(data):
+    if not isinstance(data, list):
+        return 'Error: Data should be a list'
+    processed = []
+    for item in data:
+        if isinstance(item, int):
+            processed.append(item ** 2)
+        else:
+            return 'Error: All items must be integers'
+    return processed
