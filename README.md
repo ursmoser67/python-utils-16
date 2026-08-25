@@ -1,48 +1,44 @@
-# Python Utils 16
+# python-utils-16
 
-Python Utils 16 is a versatile library designed to simplify common programming tasks. This toolkit provides a collection of utility functions and classes that streamline development and enhance productivity.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+python-utils-16 provides a set of practical utilities for common development tasks in Python. It focuses on reliable error handling, file operations, and configuration management without unnecessary dependencies.
 
 ## Features
-- **Data Validation**: Simplify data checks and validations with robust built-in validators for common data types.
-- **File Management**: Effortlessly handle file operations such as reading, writing, and moving files with easy-to-use functions.
-- **Date and Time Utilities**: Manipulate dates and times with a simplified interface for parsing, formatting, and arithmetic operations.
-- **Caching Mechanism**: Implement a caching layer to optimize function performance with memoization capabilities.
+- `@retry` decorator with exponential backoff for network and I/O operations
+- `safe_write` function that creates timestamped backups before overwriting files
+- Multi-format configuration loader supporting JSON, YAML, and environment variable overrides
+- Utility functions for human-readable byte sizes and duration formatting
 
 ## Installation
-
-To install Python Utils 16, you can use pip. Simply run the following command:
 
 ```bash
 pip install python-utils-16
 ```
 
-## Basic Usage Example
+To install the development version:
 
-Here's a quick example demonstrating a few features from the library:
+```bash
+git clone https://github.com/Developer/python-utils-16.git
+cd python-utils-16
+pip install -e .
+```
+
+## Usage
 
 ```python
-from python_utils_16 import validators, file_manager, date_utils
+from python_utils_16 import retry, safe_write, load_config, format_size
 
-# Data Validation
-email = "example@example.com"
-if validators.is_valid_email(email):
-    print("Email is valid.")
+@retry(max_attempts=3, backoff=2)
+def fetch_data():
+    # unreliable operation
+    pass
 
-# File Management
-file_path = "example.txt"
-file_manager.write_to_file(file_path, "Hello, World!")
-content = file_manager.read_file(file_path)
-print(content)
-
-# Date and Time Utilities
-from datetime import datetime
-now = datetime.now()
-formatted_date = date_utils.format_date(now, "%Y-%m-%d %H:%M:%S")
-print(f"Current date and time: {formatted_date}")
+safe_write("output.txt", "content here")
+config = load_config("config.yaml")
+print(format_size(1536000))
 ```
 
 ## License
 
-![MIT License](https://img.shields.io/badge/license-MIT-brightgreen)
-
-Python Utils 16 is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+MIT License
