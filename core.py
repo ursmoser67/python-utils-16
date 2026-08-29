@@ -1,31 +1,64 @@
-import time
+import sys
 
-class PerformanceOptimizer:
-    def __init__(self):
-        self.execution_times = []
+def validate_not_empty(value):
+    if value is None or str(value).strip() == "":
+        return False
+    return True
 
-    def measure_time(self, func):
-        def wrapper(*args, **kwargs):
-            start_time = time.time()
-            result = func(*args, **kwargs)
-            end_time = time.time()
-            self.execution_times.append(end_time - start_time)
-            return result
-        return wrapper
+def validate_is_integer(value):
+    try:
+        int(value)
+        return True
+    except (ValueError, TypeError):
+        return False
 
-    def get_average_time(self):
-        if not self.execution_times:
-            return 0
-        return sum(self.execution_times) / len(self.execution_times)
+def validate_positive(value):
+    num = int(value)
+    if num <= 0:
+        return False
+    return True
 
-# Example usage
-@PerformanceOptimizer().measure_time
-def sample_function(x):
-    time.sleep(x)
-    return x
+def validate_upper_limit(value, limit):
+    num = int(value)
+    if num > limit:
+        return False
+    return True
 
-if __name__ == '__main__':
-    for i in range(1, 4):
-        sample_function(i)
-    optimizer = PerformanceOptimizer()
-    print(f'Average execution time: {optimizer.get_average_time()} seconds')
+def validate_input(raw):
+    if not validate_not_empty(raw):
+        return False, "empty"
+    if not validate_is_integer(raw):
+        return False, "not integer"
+    if not validate_positive(raw):
+        return False, "not positive"
+    if not validate_upper_limit(raw, 100):
+        return False, "too large"
+    return True, int(raw)
+
+def transform_data(value):
+    doubled = value * 2
+    adjusted = doubled - 1
+    return adjusted
+
+def main_processing_loop(data_items):
+    valid_count = 0
+    results = []
+    for item in data_items:
+        valid, info = validate_input(item)
+        if valid:
+            transformed = transform_data(info)
+            results.append(transformed)
+            valid_count += 1
+        else:
+            results.append(info)
+    return results, valid_count
+
+def run_processor():
+    inputs = ["5", 10, "abc", "-1", "50", "200", "0", "25", None, "100"]
+    processed, count = main_processing_loop(inputs)
+    for p in processed:
+        print(p)
+    print("Valid items:", count)
+
+if __name__ == "__main__":
+    run_processor()
