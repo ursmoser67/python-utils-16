@@ -1,45 +1,37 @@
-import json
-import os
-from typing import Any, Dict
+import re
 
-DEFAULT_CONFIG: Dict[str, Any] = {
-    "app_name": "MyApp",
-    "version": "1.0.0",
-    "host": "0.0.0.0",
-    "port": 8000,
-    "debug": False,
-    "database": {
-        "host": "localhost",
-        "port": 5432,
-        "name": "defaultdb",
-    }
-}
+def is_valid_email(email: str) -> bool:
+    if not isinstance(email, str) or not email:
+        return False
+    pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+    return re.match(pattern, email) is not None
 
-def merge_configs(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
-    result = base.copy()
-    for key, value in override.items():
-        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
-            result[key] = merge_configs(result[key], value)
-        else:
-            result[key] = value
-    return result
+def is_valid_url(url: str) -> bool:
+    if not isinstance(url, str) or not url:
+        return False
+    pattern = r"^https?://[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:/.*)?$"
+    return re.match(pattern, url) is not None
 
-def load_config(config_path: str, defaults: Dict[str, Any] = None) -> Dict[str, Any]:
-    if defaults is None:
-        defaults = DEFAULT_CONFIG
-    config = defaults.copy()
-    if os.path.isfile(config_path):
-        with open(config_path, "r", encoding="utf-8") as file:
-            try:
-                loaded_config = json.load(file)
-                if isinstance(loaded_config, dict):
-                    config = merge_configs(config, loaded_config)
-                else:
-                    raise ValueError("Configuration file must be a JSON object")
-            except json.JSONDecodeError as e:
-                raise ValueError(f"Invalid JSON format in {config_path}: {e}") from e
-    return config
+def is_valid_phone(phone: str) -> bool:
+    if not isinstance(phone, str) or not phone:
+        return False
+    cleaned = re.sub(r"[\s-]", "", phone)
+    return bool(re.match(r"^\+?\d{10,15}$", cleaned))
 
-def save_config(config: Dict[str, Any], config_path: str) -> None:
-    with open(config_path, "w", encoding="utf-8") as file:
-        json.dump(config, file, indent=4)
+def is_valid_age(age: int) -> bool:
+    if not isinstance(age, int):
+        return False
+    return 0 <= age <= 120
+
+def is_non_empty_string(value: str) -> bool:
+    return isinstance(value, str) and bool(value.strip())
+
+def is_positive_number(value: float) -> bool:
+    if not isinstance(value, (int, float)):
+        return False
+    return value > 0
+
+def is_in_range(value: float, min_val: float, max_val: float) -> bool:
+    if not all(isinstance(x, (int, float)) for x in (value, min_val, max_val)):
+        return False
+    return min_val <= value <= max_val
