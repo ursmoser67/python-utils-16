@@ -1,37 +1,32 @@
-from typing import Any, Dict, Tuple
+import functools
+import random
+import time
+from typing import Any, Callable, Tuple, Type
 
-class FastPathResolver:
-    __slots__ = ('_cache', '_limit')
 
-    def __init__(self, cache_limit: int = 1000) -> None:
-        self._cache: Dict[str, Tuple[str, ...]] = {}
-        self._limit: int = cache_limit
+def retry(
+    max_retries: int = 3,
+    initial_delay: float = 1.0,
+    backoff_factor: float = 2.0,
+    jitter: bool = True,
+    allowed_exceptions: Tuple[Type[BaseException], ...] = (Exception,),
+) -> Callable:
+    def decorator(func: Callable) -> Callable:
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            delay = initial_delay
+            for attempt in range(1, max_retries + 1):
+                try:
+                    return func(*args, **kwargs)
+                except allowed_exceptions as err:
+                    if attempt == max_retries:
+                        raise err
+                    sleep_duration = delay
+                    if jitter:
+                        sleep_duration += random.uniform(0, delay * 0.1)
+                    time.sleep(sleep_duration)
+                    delay *= backoff_factor
 
-    def _parse_path(self, path: str) -> Tuple[str, ...]:
-        if path in self._cache:
-            return self._cache[path]
-        
-        result = tuple(path.split('.'))
-        if len(self._cache) < self._limit:
-            self._cache[path] = result
-        return result
+        return wrapper
 
-    def get(self, target: Any, path: str, default: Any = None) -> Any:
-        if not path:
-            return target
-        
-        keys = self._parse_path(path)
-        current = target
-        
-        try:
-            for key in keys:
-                if isinstance(current, dict):
-                    current = current[key]
-                elif isinstance(current, (list, tuple)):
-                    current = current[int(key)]
-                else:
-                    current = getattr(current, key)
-        except (KeyError, IndexError, ValueError, AttributeError):
-            return default
-            
-        return current
+    return decorator
