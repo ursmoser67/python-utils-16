@@ -1,29 +1,50 @@
-import json
+import math
+from typing import Any, Dict, List, Optional, Union
 
-class InputValidationError(Exception):
-    pass
 
-class Processor:
-    def __init__(self):
-        pass
+class SafeDataProcessor:
+    def __init__(self, strict_mode: bool = False) -> None:
+        self.strict_mode = strict_mode
 
-    def validate_input(self, data):
-        if not isinstance(data, dict):
-            raise InputValidationError('Input must be a dictionary.')
-        if 'name' not in data or 'age' not in data:
-            raise InputValidationError('Input must contain name and age.')
-        if not isinstance(data['age'], int) or data['age'] < 0:
-            raise InputValidationError('Age must be a non-negative integer.')
+    def safe_divide(self, numerator: Union[int, float], denominator: Union[int, float], default: float = 0.0) -> float:
+        try:
+            if not isinstance(numerator, (int, float)) or not isinstance(denominator, (int, float)):
+                raise TypeError("Inputs must be numeric")
+            if math.isnan(numerator) or math.isnan(denominator):
+                raise ValueError("Numeric inputs cannot be NaN")
+            return float(numerator) / float(denominator)
+        except (ZeroDivisionError, TypeError, ValueError) as e:
+            if self.strict_mode:
+                raise ValueError(f"Division failed: {e}") from e
+            return default
 
-    def process(self, data):
-        self.validate_input(data)
-        return json.dumps(data)
+    def extract_nested_key(self, data: Optional[Dict[str, Any]], path: List[str], default: Any = None) -> Any:
+        if not isinstance(data, dict) or not path:
+            return default
+        curr = data
+        for key in path:
+            if not isinstance(curr, dict) or key not in curr:
+                return default
+            curr = curr[key]
+        return curr
 
-if __name__ == '__main__':
-    processor = Processor()
-    input_data = {'name': 'Alice', 'age': 30}
-    try:
-        result = processor.process(input_data)
-        print(result)
-    except InputValidationError as e:
-        print(f'Error: {e}')
+    def parse_numeric_list(self, raw_items: Optional[List[Any]]) -> List[float]:
+        if raw_items is None:
+            return []
+        if not isinstance(raw_items, (list, tuple)):
+            if self.strict_mode:
+                raise TypeError("Expected list or tuple")
+            return []
+        results: List[float] = []
+        for item in raw_items:
+            try:
+                if item is None or isinstance(item, bool):
+                    continue
+                val = float(item)
+                if not math.isnan(val) and not math.isinf(val):
+                    results.append(val)
+            except (ValueError, TypeError):
+                if self.strict_mode:
+                    raise ValueError(f"Invalid numeric element: {item}")
+                continue
+        return results
