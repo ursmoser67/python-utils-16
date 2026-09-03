@@ -1,32 +1,35 @@
 import functools
-import random
 import time
-from typing import Any, Callable, Tuple, Type
+from typing import Callable, Any, Dict
 
+_CACHE: Dict[tuple, Any] = {}
 
-def retry(
-    max_retries: int = 3,
-    initial_delay: float = 1.0,
-    backoff_factor: float = 2.0,
-    jitter: bool = True,
-    allowed_exceptions: Tuple[Type[BaseException], ...] = (Exception,),
-) -> Callable:
-    def decorator(func: Callable) -> Callable:
-        @functools.wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
-            delay = initial_delay
-            for attempt in range(1, max_retries + 1):
-                try:
-                    return func(*args, **kwargs)
-                except allowed_exceptions as err:
-                    if attempt == max_retries:
-                        raise err
-                    sleep_duration = delay
-                    if jitter:
-                        sleep_duration += random.uniform(0, delay * 0.1)
-                    time.sleep(sleep_duration)
-                    delay *= backoff_factor
+def memoize(func: Callable) -> Callable:
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs) -> Any:
+        key = (func.__name__, args, frozenset(kwargs.items()))
+        if key not in _CACHE:
+            _CACHE[key] = func(*args, **kwargs)
+        return _CACHE[key]
+    return wrapper
 
-        return wrapper
+def batch_process(items: list, chunk_size: int = 100):
+    for i in range(0, len(items), chunk_size):
+        yield items[i:i + chunk_size]
 
-    return decorator
+class PerformanceTimer:
+    def __init__(self, name: str):
+        self.name = name
+
+    def __enter__(self):
+        self.start = time.perf_counter()
+        return self
+
+    def __exit__(self, *args):
+        self.elapsed = time.perf_counter() - self.start
+
+def fast_flatten(nested_list: list) -> list:
+    return [item for sublist in nested_list for item in sublist]
+
+def clear_cache() -> None:
+    _CACHE.clear()
