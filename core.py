@@ -1,64 +1,37 @@
-import sys
+from typing import Any, Dict, Tuple
 
-def validate_not_empty(value):
-    if value is None or str(value).strip() == "":
-        return False
-    return True
+class FastPathResolver:
+    __slots__ = ('_cache', '_limit')
 
-def validate_is_integer(value):
-    try:
-        int(value)
-        return True
-    except (ValueError, TypeError):
-        return False
+    def __init__(self, cache_limit: int = 1000) -> None:
+        self._cache: Dict[str, Tuple[str, ...]] = {}
+        self._limit: int = cache_limit
 
-def validate_positive(value):
-    num = int(value)
-    if num <= 0:
-        return False
-    return True
+    def _parse_path(self, path: str) -> Tuple[str, ...]:
+        if path in self._cache:
+            return self._cache[path]
+        
+        result = tuple(path.split('.'))
+        if len(self._cache) < self._limit:
+            self._cache[path] = result
+        return result
 
-def validate_upper_limit(value, limit):
-    num = int(value)
-    if num > limit:
-        return False
-    return True
-
-def validate_input(raw):
-    if not validate_not_empty(raw):
-        return False, "empty"
-    if not validate_is_integer(raw):
-        return False, "not integer"
-    if not validate_positive(raw):
-        return False, "not positive"
-    if not validate_upper_limit(raw, 100):
-        return False, "too large"
-    return True, int(raw)
-
-def transform_data(value):
-    doubled = value * 2
-    adjusted = doubled - 1
-    return adjusted
-
-def main_processing_loop(data_items):
-    valid_count = 0
-    results = []
-    for item in data_items:
-        valid, info = validate_input(item)
-        if valid:
-            transformed = transform_data(info)
-            results.append(transformed)
-            valid_count += 1
-        else:
-            results.append(info)
-    return results, valid_count
-
-def run_processor():
-    inputs = ["5", 10, "abc", "-1", "50", "200", "0", "25", None, "100"]
-    processed, count = main_processing_loop(inputs)
-    for p in processed:
-        print(p)
-    print("Valid items:", count)
-
-if __name__ == "__main__":
-    run_processor()
+    def get(self, target: Any, path: str, default: Any = None) -> Any:
+        if not path:
+            return target
+        
+        keys = self._parse_path(path)
+        current = target
+        
+        try:
+            for key in keys:
+                if isinstance(current, dict):
+                    current = current[key]
+                elif isinstance(current, (list, tuple)):
+                    current = current[int(key)]
+                else:
+                    current = getattr(current, key)
+        except (KeyError, IndexError, ValueError, AttributeError):
+            return default
+            
+        return current
