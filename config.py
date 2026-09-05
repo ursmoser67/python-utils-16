@@ -1,46 +1,28 @@
-import json
 import os
-from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional
 
+class ConfigManager:
+    """Handles application configuration loading and access."""
 
-class Config:
     def __init__(self, defaults: Optional[Dict[str, Any]] = None) -> None:
-        self._data: Dict[str, Any] = defaults.copy() if defaults else {}
+        self._config: Dict[str, Any] = defaults or {}
 
-    def load_dict(self, data: Dict[str, Any]) -> None:
-        self._deep_update(self._data, data)
-
-    def load_json(self, filepath: Union[str, Path]) -> bool:
-        path = Path(filepath)
-        if not path.is_file():
-            return False
-        with open(path, "r", encoding="utf-8") as f:
-            self.load_dict(json.load(f))
-        return True
-
-    def load_env(self, prefix: str = "APP_") -> None:
+    def load_from_env(self, prefix: str = "APP_") -> None:
+        """Loads environment variables starting with prefix into config."""
         for key, value in os.environ.items():
             if key.startswith(prefix):
-                config_key = key[len(prefix):].lower()
-                self._data[config_key] = value
+                clean_key = key[len(prefix):].lower()
+                self._config[clean_key] = value
 
     def get(self, key: str, default: Any = None) -> Any:
-        parts = key.split(".")
-        current = self._data
-        for part in parts:
-            if isinstance(current, dict) and part in current:
-                current = current[part]
-            else:
-                return default
-        return current
+        """Retrieves configuration value by key."""
+        return self._config.get(key, default)
 
-    def _deep_update(self, target: Dict[str, Any], source: Dict[str, Any]) -> None:
-        for key, value in source.items():
-            if isinstance(value, dict) and key in target and isinstance(target[key], dict):
-                self._deep_update(target[key], value)
-            else:
-                target[key] = value
+    def set(self, key: str, value: Any) -> None:
+        """Sets configuration value for key."""
+        self._config[key] = value
 
-    def as_dict(self) -> Dict[str, Any]:
-        return self._data.copy()
+    @property
+    def all(self) -> Dict[str, Any]:
+        """Returns complete configuration dictionary."""
+        return self._config.copy()
