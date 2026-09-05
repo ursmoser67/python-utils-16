@@ -1,44 +1,46 @@
 # python-utils-16
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-python-utils-16 provides a set of practical utilities for common development tasks in Python. It focuses on reliable error handling, file operations, and configuration management without unnecessary dependencies.
+A collection of lightweight, high-performance utility functions designed to streamline repetitive Python development tasks. This library focuses on simplifying common operations in file handling, data formatting, and process synchronization.
 
 ## Features
-- `@retry` decorator with exponential backoff for network and I/O operations
-- `safe_write` function that creates timestamped backups before overwriting files
-- Multi-format configuration loader supporting JSON, YAML, and environment variable overrides
-- Utility functions for human-readable byte sizes and duration formatting
+
+*   **Robust File Operations**: Simplified wrappers for recursive directory traversal and atomic file writes.
+*   **Time-Series Helpers**: Built-in decorators for benchmarking function execution and caching recurring calculations.
+*   **String Manipulation**: Advanced slugify and sanitization utilities for cleaning user-provided inputs.
+*   **Concurrency Support**: Thread-safe logging and queue management tools to improve multi-threaded application reliability.
 
 ## Installation
+
+Install the package via pip:
 
 ```bash
 pip install python-utils-16
 ```
 
-To install the development version:
+If you are working in a development environment, you can install the dependencies directly:
 
 ```bash
-git clone https://github.com/Developer/python-utils-16.git
-cd python-utils-16
-pip install -e .
+pip install -r requirements.txt
 ```
 
-## Usage
+## Basic Usage
+
+Import the required utilities directly from the package to enhance your workflow:
 
 ```python
-from python_utils_16 import retry, safe_write, load_config, format_size
+from pyutils16.files import safe_write
+from pyutils16.decorators import time_execution
 
-@retry(max_attempts=3, backoff=2)
-def fetch_data():
-    # unreliable operation
-    pass
+@time_execution
+def process_data(data):
+    # Process your data here
+    safe_write("output.txt", str(data))
 
-safe_write("output.txt", "content here")
-config = load_config("config.yaml")
-print(format_size(1536000))
+process_data({"key": "value"})
 ```
 
 ## License
 
-MIT License
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
