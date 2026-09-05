@@ -1,39 +1,29 @@
-import logging
-from typing import Any, Callable, Optional, TypeVar, ParamSpec
+import time
+from typing import List, Any, Callable
 
-P = ParamSpec('P')
-R = TypeVar('R')
+class BatchProcessor:
+    __slots__ = ("batch_size", "timeout", "callback", "_buffer", "_last_flush")
 
-logger = logging.getLogger(__name__)
+    def __init__(self, batch_size: int, timeout: float, callback: Callable[[List[Any]], None]):
+        self.batch_size = batch_size
+        self.timeout = timeout
+        self.callback = callback
+        self._buffer: List[Any] = []
+        self._last_flush = time.time()
 
-def safe_execute(func: Callable[P, R], *args: P.args, **kwargs: P.kwargs) -> Optional[R]:
-    """Execute function with robust error handling for edge cases."""
-    try:
-        if func is None:
-            raise ValueError("callable cannot be None")
-        return func(*args, **kwargs)
-    except (ValueError, TypeError, AttributeError) as e:
-        logger.error(f"validation error in {func.__name__}: {e}")
-        return None
-    except Exception as e:
-        logger.critical(f"unexpected system error: {e}", exc_info=True)
-        return None
+    def add(self, item: Any) -> None:
+        self._buffer.append(item)
+        if len(self._buffer) >= self.batch_size or (time.time() - self._last_flush) >= self.timeout:
+            self.flush()
 
-def validate_input(data: Any, expected_type: type) -> bool:
-    """Verify data integrity and type constraints."""
-    try:
-        return isinstance(data, expected_type) and data is not None
-    except Exception:
-        return False
+    def flush(self) -> None:
+        if not self._buffer:
+            return
+        current_batch = self._buffer
+        self._buffer = []
+        self._last_flush = time.time()
+        self.callback(current_batch)
 
-class ExecutionResult:
-    def __init__(self, data: Optional[Any], error: Optional[Exception] = None):
-        self.data = data
-        self.error = error
-
-def process_safe(func: Callable[P, R], *args: P.args, **kwargs: P.kwargs) -> ExecutionResult:
-    """Return wrapped result with exception state tracking."""
-    try:
-        return ExecutionResult(func(*args, **kwargs))
-    except Exception as e:
-        return ExecutionResult(None, e)
+    def check_timeout(self) -> None:
+        if self._buffer and (time.time() - self._last_flush) >= self.timeout:
+            self.flush()
