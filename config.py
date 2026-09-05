@@ -1,54 +1,46 @@
 import json
 import os
-from typing import Any, Dict, Optional
+from pathlib import Path
+from typing import Any, Dict, Optional, Union
 
 
-class ConfigLoader:
-    def __init__(self, defaults: Optional[Dict[str, Any]] = None):
-        self._config: Dict[str, Any] = defaults.copy() if defaults else {}
+class Config:
+    def __init__(self, defaults: Optional[Dict[str, Any]] = None) -> None:
+        self._data: Dict[str, Any] = defaults.copy() if defaults else {}
 
-    def load_dict(self, data: Dict[str, Any]) -> "ConfigLoader":
-        self._deep_merge(self._config, data)
-        return self
+    def load_dict(self, data: Dict[str, Any]) -> None:
+        self._deep_update(self._data, data)
 
-    def load_json(self, filepath: str) -> "ConfigLoader":
-        if os.path.exists(filepath):
-            with open(filepath, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                self.load_dict(data)
-        return self
+    def load_json(self, filepath: Union[str, Path]) -> bool:
+        path = Path(filepath)
+        if not path.is_file():
+            return False
+        with open(path, "r", encoding="utf-8") as f:
+            self.load_dict(json.load(f))
+        return True
 
-    def load_env(self, prefix: str = "") -> "ConfigLoader":
+    def load_env(self, prefix: str = "APP_") -> None:
         for key, value in os.environ.items():
-            if prefix and not key.startswith(prefix):
-                continue
-            config_key = key[len(prefix):].lower()
-            if config_key:
-                self._set_nested(config_key.split("__"), value)
-        return self
+            if key.startswith(prefix):
+                config_key = key[len(prefix):].lower()
+                self._data[config_key] = value
 
     def get(self, key: str, default: Any = None) -> Any:
-        keys = key.split(".")
-        val = self._config
-        for k in keys:
-            if isinstance(val, dict) and k in val:
-                val = val[k]
+        parts = key.split(".")
+        current = self._data
+        for part in parts:
+            if isinstance(current, dict) and part in current:
+                current = current[part]
             else:
                 return default
-        return val
+        return current
 
-    def to_dict(self) -> Dict[str, Any]:
-        return self._config.copy()
-
-    def _deep_merge(self, base: Dict[str, Any], update: Dict[str, Any]) -> None:
-        for k, v in update.items():
-            if isinstance(v, dict) and k in base and isinstance(base[k], dict):
-                self._deep_merge(base[k], v)
+    def _deep_update(self, target: Dict[str, Any], source: Dict[str, Any]) -> None:
+        for key, value in source.items():
+            if isinstance(value, dict) and key in target and isinstance(target[key], dict):
+                self._deep_update(target[key], value)
             else:
-                base[k] = v
+                target[key] = value
 
-    def _set_nested(self, path: list, value: Any) -> None:
-        curr = self._config
-        for k in path[:-1]:
-            curr = curr.setdefault(k, {})
-        curr[path[-1]] = value
+    def as_dict(self) -> Dict[str, Any]:
+        return self._data.copy()
