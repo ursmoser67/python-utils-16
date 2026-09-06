@@ -1,24 +1,32 @@
-import os
-from typing import Any, List, Optional
+import json
+from typing import Any, Dict, List, Optional
+from pathlib import Path
 
-def ensure_dir(path: str) -> None:
-    if not os.path.exists(path):
-        os.makedirs(path, exist_ok=True)
+def read_json(path: str) -> Dict[str, Any]:
+    with open(path, 'r', encoding='utf-8') as f:
+        return json.load(f)
 
-def flatten(items: List[Any]) -> List[Any]:
-    result = []
-    for item in items:
-        if isinstance(item, list):
-            result.extend(flatten(item))
-        else:
-            result.append(item)
-    return result
-
-def get_env_var(key: str, default: Optional[str] = None) -> str:
-    return os.environ.get(key, default or "")
+def write_json(path: str, data: Any) -> None:
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=4)
 
 def chunk_list(data: List[Any], size: int) -> List[List[Any]]:
     return [data[i:i + size] for i in range(0, len(data), size)]
 
-def clean_dict(data: dict) -> dict:
-    return {k: v for k, v in data.items() if v is not None}
+def ensure_dir(path: str) -> None:
+    Path(path).mkdir(parents=True, exist_ok=True)
+
+def flatten_dict(d: Dict[str, Any], parent_key: str = '', sep: str = '_') -> Dict[str, Any]:
+    items = []
+    for k, v in d.items():
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
+        if isinstance(v, dict):
+            items.extend(flatten_dict(v, new_key, sep=sep).items())
+        else:
+            items.append((new_key, v))
+    return dict(items)
+
+def get_env_or_default(key: str, default: Any, env_vars: Optional[Dict[str, str]] = None) -> Any:
+    import os
+    source = env_vars or os.environ
+    return source.get(key, default)
