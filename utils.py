@@ -1,49 +1,32 @@
-import copy
-import json
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, Generator, Iterable, List
 
-def get_nested_value(data: Any, keys: List[Union[str, int]], default: Any = None) -> Any:
-    current = data
-    for key in keys:
-        if isinstance(current, dict) and key in current:
-            current = current[key]
-        elif isinstance(current, (list, tuple)) and isinstance(key, int) and 0 <= key < len(current):
-            current = current[key]
+
+def chunk_iterable(iterable: Iterable[Any], size: int) -> Generator[List[Any], None, None]:
+    if size <= 0:
+        raise ValueError("Chunk size must be greater than zero.")
+    chunk = []
+    for item in iterable:
+        chunk.append(item)
+        if len(chunk) == size:
+            yield chunk
+            chunk = []
+    if chunk:
+        yield chunk
+
+
+def flatten(iterable: Iterable[Any]) -> Generator[Any, None, None]:
+    for item in iterable:
+        if isinstance(item, Iterable) and not isinstance(item, (str, bytes)):
+            yield from flatten(item)
         else:
-            return default
-    return current
+            yield item
 
-def flatten_dict(nested_dict: Dict[str, Any], separator: str = ".") -> Dict[str, Any]:
-    flat_dict: Dict[str, Any] = {}
-    def flatten_helper(d: Dict[str, Any], parent: str = "") -> None:
-        for key, value in d.items():
-            new_key = f"{parent}{separator}{key}" if parent else key
-            if isinstance(value, dict):
-                flatten_helper(value, new_key)
-            else:
-                flat_dict[new_key] = value
-    flatten_helper(nested_dict)
-    return flat_dict
 
-def deep_merge(dict1: Dict[str, Any], dict2: Dict[str, Any]) -> Dict[str, Any]:
-    result = copy.deepcopy(dict1)
+def deep_merge(dict1: Dict[Any, Any], dict2: Dict[Any, Any]) -> Dict[Any, Any]:
+    result = dict1.copy()
     for key, value in dict2.items():
         if key in result and isinstance(result[key], dict) and isinstance(value, dict):
             result[key] = deep_merge(result[key], value)
         else:
-            result[key] = copy.deepcopy(value)
+            result[key] = value
     return result
-
-def safe_load_json(json_str: str) -> Union[Dict[str, Any], None]:
-    try:
-        return json.loads(json_str)
-    except (json.JSONDecodeError, TypeError, ValueError):
-        return None
-
-def convert_keys_to_str(data: Any) -> Any:
-    if isinstance(data, dict):
-        return {str(k): convert_keys_to_str(v) for k, v in data.items()}
-    elif isinstance(data, list):
-        return [convert_keys_to_str(item) for item in data]
-    else:
-        return data
