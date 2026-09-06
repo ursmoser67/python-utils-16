@@ -1,24 +1,24 @@
 import os
-import json
-from typing import Any, Dict, List
+from typing import Any, List, Optional
 
-def read_json_file(file_path: str) -> Dict[str, Any]:
-    if not os.path.isfile(file_path):
-        raise FileNotFoundError(f"File not found: {file_path}")
-    with open(file_path, 'r', encoding='utf-8') as f:
-        return json.load(f)
+def ensure_dir(path: str) -> None:
+    if not os.path.exists(path):
+        os.makedirs(path, exist_ok=True)
 
-
-def write_json_file(file_path: str, data: Dict[str, Any]) -> None:
-    with open(file_path, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
-
-
-def merge_dicts(dict1: Dict[str, Any], dict2: Dict[str, Any]) -> Dict[str, Any]:
-    result = dict1.copy()
-    result.update(dict2)
+def flatten(items: List[Any]) -> List[Any]:
+    result = []
+    for item in items:
+        if isinstance(item, list):
+            result.extend(flatten(item))
+        else:
+            result.append(item)
     return result
 
+def get_env_var(key: str, default: Optional[str] = None) -> str:
+    return os.environ.get(key, default or "")
 
-def flatten_list_of_dicts(list_of_dicts: List[Dict[str, Any]], key: str) -> List[Any]:
-    return [d[key] for d in list_of_dicts if key in d]
+def chunk_list(data: List[Any], size: int) -> List[List[Any]]:
+    return [data[i:i + size] for i in range(0, len(data), size)]
+
+def clean_dict(data: dict) -> dict:
+    return {k: v for k, v in data.items() if v is not None}
