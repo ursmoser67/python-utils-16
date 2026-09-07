@@ -1,27 +1,30 @@
-import time
-import requests
+import json
+from typing import Any, Dict, Optional
 
-class NetworkError(Exception):
-    pass
-
-def retry(func, retries=3, delay=2):
-    for attempt in range(retries):
-        try:
-            return func()
-        except requests.RequestException:
-            if attempt < retries - 1:
-                time.sleep(delay)
-            else:
-                raise NetworkError('Max retries reached')
-
-def fetch_data(url):
-    response = retry(lambda: requests.get(url))
-    return response.json() if response.status_code == 200 else None
-
-if __name__ == '__main__':
-    url = 'https://api.example.com/data'
+def safe_json_load(data: str, default: Optional[Dict] = None) -> Dict:
     try:
-        data = fetch_data(url)
-        print(data)
-    except NetworkError as e:
-        print(e)
+        return json.loads(data)
+    except (json.JSONDecodeError, TypeError):
+        return default or {}
+
+def flatten_dict(d: Dict, parent_key: str = '', sep: str = '_') -> Dict:
+    items = []
+    for k, v in d.items():
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
+        if isinstance(v, dict):
+            items.extend(flatten_dict(v, new_key, sep=sep).items())
+        else:
+            items.append((new_key, v))
+    return dict(items)
+
+def filter_none_values(data: Dict) -> Dict:
+    return {k: v for k, v in data.items() if v is not None}
+
+def merge_configs(base: Dict, override: Dict) -> Dict:
+    result = base.copy()
+    for key, value in override.items():
+        if isinstance(value, dict) and key in result and isinstance(result[key], dict):
+            result[key] = merge_configs(result[key], value)
+        else:
+            result[key] = value
+    return result
