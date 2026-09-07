@@ -1,28 +1,26 @@
+import json
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
-class ConfigManager:
-    """Handles application configuration loading and access."""
+class ConfigLoader:
+    def __init__(self, defaults: Dict[str, Any]):
+        self._config = defaults.copy()
 
-    def __init__(self, defaults: Optional[Dict[str, Any]] = None) -> None:
-        self._config: Dict[str, Any] = defaults or {}
+    def load_from_file(self, filepath: str) -> None:
+        if os.path.exists(filepath):
+            with open(filepath, 'r') as f:
+                file_data = json.load(f)
+                self._config.update(file_data)
 
-    def load_from_env(self, prefix: str = "APP_") -> None:
-        """Loads environment variables starting with prefix into config."""
-        for key, value in os.environ.items():
-            if key.startswith(prefix):
-                clean_key = key[len(prefix):].lower()
-                self._config[clean_key] = value
+    def load_from_env(self, prefix: str = 'APP_') -> None:
+        for key in self._config:
+            env_key = f"{prefix}{key.upper()}"
+            if env_key in os.environ:
+                self._config[key] = os.environ[env_key]
 
     def get(self, key: str, default: Any = None) -> Any:
-        """Retrieves configuration value by key."""
         return self._config.get(key, default)
-
-    def set(self, key: str, value: Any) -> None:
-        """Sets configuration value for key."""
-        self._config[key] = value
 
     @property
     def all(self) -> Dict[str, Any]:
-        """Returns complete configuration dictionary."""
         return self._config.copy()
