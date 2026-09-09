@@ -1,19 +1,33 @@
-class CustomError(Exception):
-    def __init__(self, message):
-        super().__init__(message)
-        self.message = message
+class BaseUtilsError(Exception):
+    """Base exception for python-utils-16."""
 
-class NotFoundError(CustomError):
-    def __init__(self, resource):
-        message = f'{resource} not found'
-        super().__init__(message)
 
-class ValidationError(CustomError):
-    def __init__(self, field, issue):
-        message = f'Validation error on {field}: {issue}'
-        super().__init__(message)
+class ConfigurationError(BaseUtilsError):
+    """Raised when configuration is invalid."""
 
-class OperationFailedError(CustomError):
-    def __init__(self, operation):
-        message = f'Operation failed: {operation}'
-        super().__init__(message)
+
+class ValidationError(BaseUtilsError):
+    """Raised when data validation fails."""
+
+
+class ProcessingError(BaseUtilsError):
+    """Raised when data processing fails."""
+
+
+def raise_if_none(value, name="Value"):
+    if value is None:
+        raise ValidationError(f"{name} cannot be None")
+    return value
+
+
+def validate_range(value, min_val, max_val, name="Value"):
+    if not (min_val <= value <= max_val):
+        raise ValidationError(f"{name} must be between {min_val} and {max_val}")
+    return value
+
+
+def safe_execute(func, *args, **kwargs):
+    try:
+        return func(*args, **kwargs)
+    except Exception as e:
+        raise ProcessingError(f"Execution failed: {str(e)}") from e
