@@ -1,35 +1,32 @@
 import functools
 import time
-from typing import Any, Callable, TypeVar, Iterable
+from typing import Callable, Any, Dict
 
-T = TypeVar('T')
+_CACHE: Dict[tuple, Any] = {}
 
-def retry(attempts: int = 3, delay: float = 1.0) -> Callable:
-    def decorator(func: Callable) -> Callable:
+def memoize(func: Callable) -> Callable:
+    @functools.wraps(func)
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        key = (func.__name__, args, frozenset(kwargs.items()))
+        if key not in _CACHE:
+            _CACHE[key] = func(*args, **kwargs)
+        return _CACHE[key]
+    return wrapper
+
+def batch_process(items: list, chunk_size: int = 100):
+    for i in range(0, len(items), chunk_size):
+        yield items[i:i + chunk_size]
+
+class PerformanceOptimizer:
+    @staticmethod
+    def time_execution(func: Callable) -> Callable:
         @functools.wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
-            last_ex = None
-            for _ in range(attempts):
-                try:
-                    return func(*args, **kwargs)
-                except Exception as e:
-                    last_ex = e
-                    time.sleep(delay)
-            raise last_ex
+        def wrapper(*args, **kwargs):
+            start = time.perf_counter()
+            result = func(*args, **kwargs)
+            print(f'Execution time: {time.perf_counter() - start:.6f}s')
+            return result
         return wrapper
-    return decorator
 
-def chunker(data: Iterable[T], size: int) -> Iterable[list[T]]:
-    chunk = []
-    for item in data:
-        chunk.append(item)
-        if len(chunk) == size:
-            yield chunk
-            chunk = []
-    if chunk:
-        yield chunk
-
-def compose(*functions: Callable[[Any], Any]) -> Callable[[Any], Any]:
-    def compose2(f: Callable, g: Callable) -> Callable:
-        return lambda x: f(g(x))
-    return functools.reduce(compose2, functions, lambda x: x)
+def clear_cache() -> None:
+    _CACHE.clear()
