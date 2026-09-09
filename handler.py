@@ -1,30 +1,36 @@
-import json
-from typing import Any, Dict, Optional
+import functools
+from typing import Callable, Any, Dict
 
-def safe_json_load(data: str, default: Optional[Dict] = None) -> Dict:
-    try:
-        return json.loads(data)
-    except (json.JSONDecodeError, TypeError):
-        return default or {}
+CACHE: Dict[tuple, Any] = {}
 
-def flatten_dict(d: Dict, parent_key: str = '', sep: str = '_') -> Dict:
-    items = []
-    for k, v in d.items():
-        new_key = f"{parent_key}{sep}{k}" if parent_key else k
-        if isinstance(v, dict):
-            items.extend(flatten_dict(v, new_key, sep=sep).items())
-        else:
-            items.append((new_key, v))
-    return dict(items)
+class PerformanceHandler:
+    """High-performance data processing handler."""
+    def __init__(self, capacity: int = 1000):
+        self.capacity = capacity
 
-def filter_none_values(data: Dict) -> Dict:
-    return {k: v for k, v in data.items() if v is not None}
+    def memoize_compute(self, func: Callable) -> Callable:
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            key = (func.__name__, args, tuple(sorted(kwargs.items())))
+            if key in CACHE:
+                return CACHE[key]
+            
+            if len(CACHE) >= self.capacity:
+                CACHE.clear()
+                
+            result = func(*args, **kwargs)
+            CACHE[key] = result
+            return result
+        return wrapper
 
-def merge_configs(base: Dict, override: Dict) -> Dict:
-    result = base.copy()
-    for key, value in override.items():
-        if isinstance(value, dict) and key in result and isinstance(result[key], dict):
-            result[key] = merge_configs(result[key], value)
-        else:
-            result[key] = value
-    return result
+    @staticmethod
+    def fast_filter(items: list, predicate: Callable) -> list:
+        """Optimized list filtering using generator expressions."""
+        return [item for item in items if predicate(item)]
+
+    def batch_process(self, data: list, func: Callable, chunk_size: int = 100) -> list:
+        """Chunked processing for memory efficiency."""
+        results = []
+        for i in range(0, len(data), chunk_size):
+            results.extend(map(func, data[i:i + chunk_size]))
+        return results
