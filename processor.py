@@ -1,25 +1,36 @@
-from typing import Any, List, Optional
+import logging
 
 class DataProcessor:
-    def __init__(self, data: Optional[List[Any]] = None):
-        self.data = data or []
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
 
-    def process(self) -> List[Any]:
-        return [self._sanitize(item) for item in self.data if item is not None]
+    def validate_input(self, data: dict) -> bool:
+        if not isinstance(data, dict):
+            return False
+        if 'id' not in data or not isinstance(data.get('id'), int):
+            return False
+        if 'value' not in data or not isinstance(data.get('value'), (int, float)):
+            return False
+        return True
 
-    @staticmethod
-    def _sanitize(item: Any) -> Any:
-        if isinstance(item, str):
-            return item.strip().lower()
-        return item
+    def process_stream(self, items: list):
+        for item in items:
+            try:
+                if not self.validate_input(item):
+                    self.logger.warning(f"skipping invalid item: {item}")
+                    continue
+                
+                result = item['value'] * 2
+                print(f"processed id {item['id']}: {result}")
+            except Exception as e:
+                self.logger.error(f"unexpected processing error: {e}")
 
-    def add_item(self, item: Any) -> None:
-        if item not in self.data:
-            self.data.append(item)
-
-    def clear(self) -> None:
-        self.data.clear()
-
-    @property
-    def is_empty(self) -> bool:
-        return len(self.data) == 0
+if __name__ == '__main__':
+    processor = DataProcessor()
+    test_data = [
+        {'id': 1, 'value': 10},
+        {'id': 2, 'value': 'invalid'},
+        {'id': 3, 'value': 20},
+        'bad_format'
+    ]
+    processor.process_stream(test_data)
