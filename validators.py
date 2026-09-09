@@ -1,35 +1,24 @@
-from typing import Any, Dict, List
+from typing import Any, Optional, Union
 
+def validate_email(email: str) -> bool:
+    """Validate standard email address format."""
+    if not isinstance(email, str) or "@" not in email:
+        return False
+    return email.count("@") == 1 and "." in email.split("@")[1]
 
-def validate_input(data: Dict[str, Any], required_keys: List[str]) -> None:
-    """Ensures all required keys are present and values are not None."""
-    for key in required_keys:
-        if key not in data:
-            raise ValueError(f"missing required key: {key}")
-        if data[key] is None:
-            raise ValueError(f"key {key} cannot be null")
+def validate_range(value: Union[int, float], min_val: float, max_val: float) -> bool:
+    """Check if numeric value is within bounds."""
+    return min_val <= value <= max_val
 
+def validate_required(data: Any, field: str) -> bool:
+    """Verify presence of field in dictionary."""
+    if not isinstance(data, dict):
+        return False
+    return field in data and data[field] is not None
 
-def validate_numeric(value: Any, min_val: int = 0) -> int:
-    """Ensures value is an integer and within bounds."""
-    try:
-        val = int(value)
-    except (ValueError, TypeError):
-        raise ValueError(f"invalid numeric value: {value}")
-    if val < min_val:
-        raise ValueError(f"value {val} below minimum {min_val}")
-    return val
-
-
-def process_main_loop(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Validated processing loop for batch data."""
-    required = ["id", "amount"]
-    results = []
-    for item in items:
-        try:
-            validate_input(item, required)
-            amount = validate_numeric(item["amount"])
-            results.append({"id": item["id"], "amount": amount, "status": "ok"})
-        except ValueError:
-            continue
-    return results
+def validate_length(text: str, min_len: int, max_len: Optional[int] = None) -> bool:
+    """Ensure string length fits specified constraints."""
+    length = len(text)
+    if max_len is None:
+        return length >= min_len
+    return min_len <= length <= max_len
