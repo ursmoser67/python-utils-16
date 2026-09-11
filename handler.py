@@ -1,36 +1,36 @@
-import functools
-from typing import Callable, Any, Dict
+import logging
 
-CACHE: Dict[tuple, Any] = {}
+class ValidationError(Exception):
+    pass
 
-class PerformanceHandler:
-    """High-performance data processing handler."""
-    def __init__(self, capacity: int = 1000):
-        self.capacity = capacity
+def validate_payload(data):
+    if not isinstance(data, dict):
+        raise ValidationError("payload must be a dictionary")
+    if "id" not in data or not isinstance(data["id"], int):
+        raise ValidationError("payload missing valid integer id")
+    return True
 
-    def memoize_compute(self, func: Callable) -> Callable:
-        @functools.wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
-            key = (func.__name__, args, tuple(sorted(kwargs.items())))
-            if key in CACHE:
-                return CACHE[key]
-            
-            if len(CACHE) >= self.capacity:
-                CACHE.clear()
-                
-            result = func(*args, **kwargs)
-            CACHE[key] = result
-            return result
-        return wrapper
+def process_items(items):
+    processed = []
+    for item in items:
+        try:
+            if validate_payload(item):
+                result = item["id"] * 2
+                processed.append(result)
+        except (ValidationError, KeyError) as e:
+            logging.error(f"skipping invalid item: {e}")
+            continue
+    return processed
 
-    @staticmethod
-    def fast_filter(items: list, predicate: Callable) -> list:
-        """Optimized list filtering using generator expressions."""
-        return [item for item in items if predicate(item)]
-
-    def batch_process(self, data: list, func: Callable, chunk_size: int = 100) -> list:
-        """Chunked processing for memory efficiency."""
-        results = []
-        for i in range(0, len(data), chunk_size):
-            results.extend(map(func, data[i:i + chunk_size]))
-        return results
+def main_loop(data_stream):
+    logging.basicConfig(level=logging.INFO)
+    while True:
+        try:
+            chunk = next(data_stream)
+            results = process_items(chunk)
+            logging.info(f"processed {len(results)} items")
+        except StopIteration:
+            break
+        except Exception as e:
+            logging.critical(f"stream failure: {e}")
+            break
