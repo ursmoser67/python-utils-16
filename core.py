@@ -1,32 +1,25 @@
-import functools
-import time
-from typing import Callable, Any, Dict
+from itertools import chain, islice
+from typing import Any, Iterable, Iterator, List, TypeVar
 
-_CACHE: Dict[tuple, Any] = {}
+T = TypeVar("T")
 
-def memoize(func: Callable) -> Callable:
-    @functools.wraps(func)
-    def wrapper(*args: Any, **kwargs: Any) -> Any:
-        key = (func.__name__, args, frozenset(kwargs.items()))
-        if key not in _CACHE:
-            _CACHE[key] = func(*args, **kwargs)
-        return _CACHE[key]
-    return wrapper
 
-def batch_process(items: list, chunk_size: int = 100):
-    for i in range(0, len(items), chunk_size):
-        yield items[i:i + chunk_size]
+class FastRecord:
+    __slots__ = ("id", "payload", "tags")
 
-class PerformanceOptimizer:
-    @staticmethod
-    def time_execution(func: Callable) -> Callable:
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            start = time.perf_counter()
-            result = func(*args, **kwargs)
-            print(f'Execution time: {time.perf_counter() - start:.6f}s')
-            return result
-        return wrapper
+    def __init__(self, id: int, payload: Any, tags: tuple) -> None:
+        self.id = id
+        self.payload = payload
+        self.tags = tags
 
-def clear_cache() -> None:
-    _CACHE.clear()
+
+def chunk_iterable(iterable: Iterable[T], size: int) -> Iterator[List[T]]:
+    if size <= 0:
+        raise ValueError("Chunk size must be greater than zero")
+    iterator = iter(iterable)
+    while chunk := list(islice(iterator, size)):
+        yield chunk
+
+
+def flatten_iterable(iterable: Iterable[Iterable[T]]) -> Iterator[T]:
+    return chain.from_iterable(iterable)
