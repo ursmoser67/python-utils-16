@@ -1,29 +1,32 @@
-import logging
+import os
+import json
 from typing import Any, Dict, Optional
 
-def validate_payload(data: Any) -> Optional[Dict[str, Any]]:
-    if not isinstance(data, dict):
-        logging.error("invalid payload format: expected dict")
-        return None
-    if "id" not in data or "payload" not in data:
-        logging.error("missing required fields in payload")
-        return None
-    return data
+def get_env_variable(key: str, default: Optional[str] = None) -> str:
+    return os.getenv(key, default or '')
 
-def process_stream(data_stream: Any) -> None:
-    for item in data_stream:
-        validated = validate_payload(item)
-        if validated is None:
-            continue
-        try:
-            execute_task(validated)
-        except Exception as e:
-            logging.exception(f"task execution failure: {e}")
+def load_json(file_path: str) -> Dict[str, Any]:
+    with open(file_path, 'r', encoding='utf-8') as f:
+        return json.load(f)
 
-def execute_task(data: Dict[str, Any]) -> None:
-    logging.info(f"processing task {data.get('id')}")
+def save_json(file_path: str, data: Dict[str, Any]) -> None:
+    with open(file_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=4)
 
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    sample_stream = [{"id": 1, "payload": "data1"}, "invalid", {"id": 2}]
-    process_stream(sample_stream)
+def ensure_dir(directory: str) -> None:
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+def flatten_dict(data: Dict[str, Any], parent_key: str = '', sep: str = '_') -> Dict[str, Any]:
+    items = []
+    for k, v in data.items():
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
+        if isinstance(v, dict):
+            items.extend(flatten_dict(v, new_key, sep=sep).items())
+        else:
+            items.append((new_key, v))
+    return dict(items)
+
+def chunk_list(data: list, size: int):
+    for i in range(0, len(data), size):
+        yield data[i:i + size]
