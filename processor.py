@@ -1,25 +1,27 @@
-from typing import List, Optional, Any, Callable
+import json
+from typing import Any, Dict, Optional
 
-class DataProcessor:
-    """Utility class for processing collections of data."""
+def sanitize_data(data: Any) -> Any:
+    if isinstance(data, dict):
+        return {str(k): sanitize_data(v) for k, v in data.items()}
+    if isinstance(data, list):
+        return [sanitize_data(i) for i in data]
+    if isinstance(data, (str, int, float, bool, type(None))):
+        return data
+    return str(data)
 
-    def __init__(self, items: Optional[List[Any]] = None) -> None:
-        """Initialize processor with optional data list."""
-        self.items: List[Any] = items or []
+def safe_json_load(content: str) -> Dict[str, Any]:
+    try:
+        return json.loads(content)
+    except (json.JSONDecodeError, TypeError):
+        return {}
 
-    def filter_data(self, predicate: Callable[[Any], bool]) -> List[Any]:
-        """Filter items based on a provided predicate function."""
-        return [item for item in self.items if predicate(item)]
-
-    def transform_data(self, func: Callable[[Any], Any]) -> List[Any]:
-        """Apply a transformation function to all stored items."""
-        self.items = [func(item) for item in self.items]
-        return self.items
-
-    def clear(self) -> None:
-        """Remove all items from the processor."""
-        self.items.clear()
-
-    def __len__(self) -> int:
-        """Return the current count of items."""
-        return len(self.items)
+def flatten_dict(d: Dict[str, Any], parent_key: str = '', sep: str = '_') -> Dict[str, Any]:
+    items = []
+    for k, v in d.items():
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
+        if isinstance(v, dict):
+            items.extend(flatten_dict(v, new_key, sep=sep).items())
+        else:
+            items.append((new_key, v))
+    return dict(items)
